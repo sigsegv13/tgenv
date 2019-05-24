@@ -60,7 +60,7 @@ mkdir -p "${dst_path}" || error_and_die "Failed to make directory ${dst_path}"
 trap "rm -rf ${dst_path}" EXIT;
 
 info "Downloading release tarball from ${version_url}/${tarball_name}"
-curlw -# -f -o "${dst_path}/terragrunt" "${version_url}/${tarball_name}" || error_and_die "Tarball download failed"
+curlw -# -f --location-trusted -o "${dst_path}/terragrunt" "${version_url}/${tarball_name}" || error_and_die "Tarball download failed"
 
 chmod +x "${dst_path}/terragrunt" || error_and_die "Change rights failed"
 
