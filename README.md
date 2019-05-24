@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/cunymatthieu/tgenv.svg?branch=master)](https://travis-ci.org/cunymatthieu/tgenv)
-
 # tgenv
 [Terragrunt](https://github.com/gruntwork-io/terragrunt) version manager inspired by [tfenv](https://github.com/kamatama41/tfenv)
 
@@ -10,6 +8,15 @@ Currently tgenv supports the following OSes
 - Linux (64bit)
 
 ## Installation
+### Automatic
+Install via Homebrew
+
+  ```sh
+  $ brew tap sigsegv13/tgenv
+  $ brew install tgenv
+  ```
+
+### Manual
 
 1. Check out tgenv into any path (here is `${HOME}/.tgenv`)
 
@@ -132,15 +139,36 @@ terragrunt v0.10.3
 ```
 
 ## Upgrading
+### Automatic
+Upgrading via Homebrew
+
+  ```sh
+  $ brew update                    # Updates the tap
+  $ brew upgrade tgenv             # Upgrades the app
+  ```
+
+### Manual
+
 ```bash
 $ git --git-dir=~/.tgenv/.git pull
 ```
 
 ## Uninstalling
+### Automatic
+Uninstalling via Homebrew
+
+  ```sh
+  $ brew uninstall tgenv           # Uninstalls the tgenv and the associated Terragrunt release(s)
+  $ brew untap sigsegv13/tgenv     # Removes the tap
+  ```
+
+### Manual
+
 ```bash
 $ rm -rf /some/path/to/tgenv
 ```
 
 ## LICENSE
-- [tgenv itself](https://github.com/cunymatthieu/tgenv/blob/master/LICENSE)
-- [tfenv ](https://github.com/kamatama41/tgenv/blob/master/LICENSE) : tfenv mainly uses tfenv's source code
+- [tgenv](https://github.com/sigsegv13/tgenv/blob/master/LICENSE) : My version of tgenv
+- [tgenv source](https://github.com/cunymatthieu/tgenv/blob/master/LICENSE) : Origin of my version of tgenv
+- [tfenv](https://github.com/kamatama41/tgenv/blob/master/LICENSE) : tgenv mainly uses tfenv's source code
