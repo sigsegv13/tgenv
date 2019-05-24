@@ -66,3 +66,4 @@ chmod +x "${dst_path}/terragrunt" || error_and_die "Change rights failed"
 
 info "Installation of terragrunt v${version} successful"
 tgenv-use "$version"
+trap - EXIT;
