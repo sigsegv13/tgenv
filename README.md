@@ -158,7 +158,7 @@ $ git --git-dir=~/.tgenv/.git pull
 Uninstalling via Homebrew
 
   ```sh
-  $ brew uninstall tgenv           # Uninstalls the tgenv and the associated Terragrunt release(s)
+  $ brew uninstall tgenv           # Uninstalls tgenv and associated Terragrunt release(s)
   $ brew untap sigsegv13/tgenv     # Removes the tap
   ```
 
