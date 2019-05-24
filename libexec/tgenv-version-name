@@ -2,12 +2,8 @@
 # Summary: Show the current Terragrunt version
 set -e
 
-function error_and_die() {
-  echo -e "tgenv: ${0}: ${1}" >&2
-  exit 1
-}
-
 [ -n "${TGENV_DEBUG}" ] && set -x
+source ${TGENV_ROOT}/libexec/helpers
 
 [ -d "${TGENV_ROOT}/versions" ] \
   || error_and_die "No versions of terragrunt installed. Please install one with: tgenv install"

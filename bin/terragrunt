@@ -3,4 +3,4 @@ set -e
 [ -n "$TGENV_DEBUG" ] && set -x
 
 program="${0##*/}"
-exec tgenv exec "$@"
+exec "$(dirname `which $0`)"/tgenv exec "$@"

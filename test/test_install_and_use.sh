@@ -19,7 +19,7 @@ source $(dirname $0)/helpers.sh \
 echo "### Install latest version"
 cleanup || error_and_die "Cleanup failed?!"
 
-v=$(tgenv list-remote | head -n 1)
+v=$(tgenv list-remote | grep -e "^[0-9]\+\.[0-9]\+\.[0-9]\+$" | head -n 1)
 (
   tgenv install latest || exit 1
   tgenv use ${v} || exit 1
