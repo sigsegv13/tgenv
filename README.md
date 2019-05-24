@@ -7,6 +7,7 @@ Currently tgenv supports the following OSes
 - Mac OS X (64bit)
 - Linux (64bit)
 
+
 ## Installation
 ### Automatic
 Install via Homebrew
@@ -15,6 +16,9 @@ Install via Homebrew
   $ brew tap sigsegv13/tgenv
   $ brew install tgenv
   ```
+
+Note: The Hombrew tap is maintained [here: sigsegv13/homebrew-tgenv](https://github.com/sigsegv13/homebrew-tgenv)
+
 
 ### Manual
 
@@ -35,6 +39,7 @@ Install via Homebrew
   ```bash
   $ ln -s ~/.tgenv/bin/* /usr/local/bin
   ```
+
 
 ## Usage
 ### tgenv install
@@ -138,6 +143,7 @@ $ terragrunt --version
 terragrunt v0.10.3
 ```
 
+
 ## Upgrading
 ### Automatic
 Upgrading via Homebrew
@@ -153,6 +159,7 @@ Upgrading via Homebrew
 $ git --git-dir=~/.tgenv/.git pull
 ```
 
+
 ## Uninstalling
 ### Automatic
 Uninstalling via Homebrew
@@ -167,6 +174,7 @@ Uninstalling via Homebrew
 ```bash
 $ rm -rf /some/path/to/tgenv
 ```
+
 
 ## LICENSE
 - [tgenv](https://github.com/sigsegv13/tgenv/blob/master/LICENSE) : My version of tgenv
