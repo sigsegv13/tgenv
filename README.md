@@ -1,4 +1,4 @@
-# tgenv
+# Terragrunt Version Manager (tgenv)
 [Terragrunt](https://github.com/gruntwork-io/terragrunt) version manager inspired by [tfenv](https://github.com/kamatama41/tfenv)
 
 
