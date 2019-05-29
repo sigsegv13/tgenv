@@ -10,7 +10,7 @@ Currently tgenv supports the following OSes
 
 ## Installation
 ### Automatic
-Install via Homebrew
+Install via [Homebrew](https://docs.brew.sh/Installation)
 
   ```sh
   $ brew tap sigsegv13/tgenv
