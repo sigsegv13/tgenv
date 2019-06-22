@@ -1,3 +1,8 @@
+## 0.0.7 (June 22, 2019)
+
+ * curl flag to follow redirects
+ * remove clear trap statement
+
 ## 0.0.6 (June 22, 2019)
 
  * Added list-remote-all
