@@ -80,7 +80,7 @@ download_tmp="$(mktemp -d tgenv_download.XXXXXX)" || error_and_die "Unable to cr
 trap "rm -rf ${download_tmp}" EXIT;
 
 info "Downloading release tarball from ${version_url}/${tarball_name}"
-curlw -# -f -o "${download_tmp}/${tarball_name}" "${version_url}/${tarball_name}" || error_and_die "Tarball download failed"
+curlw -L -# -f -o "${download_tmp}/${tarball_name}" "${version_url}/${tarball_name}" || error_and_die "Tarball download failed"
 info "Downloading SHA hash file from ${version_url}/${shasums_name}"
 curlw -L -s -f -o "${download_tmp}/${shasums_name}" "${version_url}/${shasums_name}" || error_and_die "SHA256 hashes download failed"
 
@@ -176,4 +176,3 @@ chmod +x "${dst_path}/terragrunt" || error_and_die "Change file mode failed"
 
 info "Installation of terragrunt v${version} successful"
 tgenv-use "${version}"
-trap - EXIT;
