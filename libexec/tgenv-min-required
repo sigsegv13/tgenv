@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Usage: tgenv min-required
+# Summary: Detect the minimal required version from *hcl files
+set -e
+[ -n "${TGENV_DEBUG}" ] && set -x
+
+bailout() {
+  >&2 echo "Error: Terragrunt currently does not support a required_version or similar feature.
+
+see https://github.com/gruntwork-io/terragrunt/issues/182 for details
+
+"
+  exit 1
+}
+
+find_min_required() {
+  # See bailout.  Code retained for maintenance/parity with tfenv
+  bailout
+
+  local root="${1}"
+
+  versions="$(grep -h -R terragrunt_version --include '*hcl' "$root"/* | tr -c -d '0-9. ~=!<>' )"
+
+  if [[ "${versions}" =~ ([~=!<>]{0,2}[[:blank:]]*[0-9]+[0-9.]+)[^0-9]* ]]; then
+    found_min_required="${BASH_REMATCH[1]}"
+
+    if [[ "${found_min_required}" =~ ^!=.+ ]]; then
+      echo "Error: Min required version is a negation ($found_min_required) - we cannot guess the desired one."
+      bailout
+    else
+      found_min_required="$(echo "$found_min_required" | tr -c -d '0-9.')"
+      #echo "Min required version is detected as ${found_min_required}"
+      echo "${found_min_required}"
+      exit 0
+    fi
+  fi
+
+  bailout
+}
+
+find_min_required "${TGENV_DIR}"

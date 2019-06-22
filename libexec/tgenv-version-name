@@ -3,7 +3,7 @@
 set -e
 
 [ -n "${TGENV_DEBUG}" ] && set -x
-source ${TGENV_ROOT}/libexec/helpers
+source "${TGENV_ROOT}/libexec/helpers"
 
 [ -d "${TGENV_ROOT}/versions" ] \
   || error_and_die "No versions of terragrunt installed. Please install one with: tgenv install"

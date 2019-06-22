@@ -1,20 +1,34 @@
 #!/usr/bin/env bash
 
 [ -n "${TGENV_DEBUG}" ] && set -x
-source ${TGENV_ROOT}/libexec/helpers
+source "${TGENV_ROOT}/libexec/helpers"
 
-[ ${#} -ne 1 ] && error_and_die "usage: tgenv use <version>"
+[ "${#}" -ne 1 ] && error_and_die "usage: tgenv use <version>"
 
 declare version_requested version regex
 
 version_requested="${1}"
+
+if [[ "${version_requested}" =~ ^min-required$ ]]; then
+  echo "Detecting minimal required version..."
+  found_min_required="$(tgenv-min-required)"
+
+  if [[ $? -eq 0 ]]; then
+      echo "Min required version is detected as ${found_min_required}"
+      version_requested="${found_min_required}"
+  else
+    echo "Min required version is currently not supported by terragrunt"
+    exit 1
+  fi
+fi
 
 if [[ "${version_requested}" =~ ^latest\:.*$ ]]; then
   version="${version_requested%%\:*}"
   regex="${version_requested##*\:}"
 elif [[ "${version_requested}" =~ ^latest$ ]]; then
   version="${version_requested}"
-  regex=""
+  regex="^[0-9]\+\.[0-9]\+\.[0-9]\+$"
+  #regex=""
 else
   version="${version_requested}"
   regex="^${version_requested}$"
@@ -31,10 +45,10 @@ version="$(\ls "${TGENV_ROOT}/versions" \
 
 [ -n "${version}" ] || error_and_die "No installed versions of terragrunt matched '${1}'"
 
-target_path=${TGENV_ROOT}/versions/${version}
-[ -f ${target_path}/terragrunt ] \
+target_path="${TGENV_ROOT}/versions/${version}"
+[ -f "${target_path}/terragrunt" ] \
   || error_and_die "Version directory for ${version} is present, but the terragrunt binary is not! Manual intervention required."
-[ -x ${target_path}/terragrunt ] \
+[ -x "${target_path}/terragrunt" ] \
   || error_and_die "Version directory for ${version} is present, but the terragrunt binary is not executable! Manual intervention required. "
 
 info "Switching to v${version}"

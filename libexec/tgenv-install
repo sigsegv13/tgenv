@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 [ -n "${TGENV_DEBUG}" ] && set -x
-source ${TGENV_ROOT}/libexec/helpers
+source "${TGENV_ROOT}/libexec/helpers"
 
 [ "${#}" -gt 1 ] && error_and_die "usage: tgenv install [<version>]"
 
@@ -10,10 +10,23 @@ declare version_requested version regex
 if [ -z "${1}" ]; then
   version_file="$(tgenv-version-file)"
   if [ "${version_file}" != "${TGENV_ROOT}/version" ]; then
-    version_requested="$(cat ${version_file} || true)"
+    version_requested="$(cat "${version_file}" || true)"
   fi
 else
   version_requested="${1}"
+fi
+
+if [[ "${version_requested}" =~ ^min-required$ ]]; then
+  echo "Detecting minimal required version..."
+  found_min_required="$(tgenv-min-required)"
+
+  if [[ $? -eq 0 ]]; then
+      echo "Min required version is detected as ${found_min_required}"
+      version_requested="${found_min_required}"
+  else
+    echo "Min required version is currently not supported by terragrunt"
+    exit 1
+  fi
 fi
 
 if [[ "${version_requested}" =~ ^latest\:.*$ ]]; then
@@ -50,20 +63,117 @@ case "$(uname -s)" in
     ;;
 esac
 
+keybase_bin="$(which keybase 2>/dev/null)"
+shasum_bin="$(which shasum 2>/dev/null)"
+
 version_url="https://github.com/gruntwork-io/terragrunt/releases/download/v${version}"
 
 tarball_name="terragrunt_${os}"
 
+shasums_name="SHA256SUMS"
+
 info "Installing Terragrunt v${version}"
 
-mkdir -p "${dst_path}" || error_and_die "Failed to make directory ${dst_path}"
-trap "rm -rf ${dst_path}" EXIT;
+# Create a local temporary directory for downloads
+download_tmp="$(mktemp -d tgenv_download.XXXXXX)" || error_and_die "Unable to create temporary download directory in $(pwd)"
+# Clean it up in case of error
+trap "rm -rf ${download_tmp}" EXIT;
 
 info "Downloading release tarball from ${version_url}/${tarball_name}"
-curlw -# -f --location-trusted -o "${dst_path}/terragrunt" "${version_url}/${tarball_name}" || error_and_die "Tarball download failed"
+curlw -# -f -o "${download_tmp}/${tarball_name}" "${version_url}/${tarball_name}" || error_and_die "Tarball download failed"
+info "Downloading SHA hash file from ${version_url}/${shasums_name}"
+curlw -L -s -f -o "${download_tmp}/${shasums_name}" "${version_url}/${shasums_name}" || error_and_die "SHA256 hashes download failed"
 
-chmod +x "${dst_path}/terragrunt" || error_and_die "Change rights failed"
+# Don't think gruntwork has signature file, so the following code is a mockup to simplify maintaining
+# parity with tfenv code base.
+# If this becomes problematic, may need to pull or comment this section.
+
+download_signature() {
+  info "Downloading SHA hash signature file from ${version_url}/${shasums_name}.sig"
+  curlw -L -s -f \
+    -o "${download_tmp}/${shasums_name}.sig" \
+    "${version_url}/${shasums_name}.sig" \
+    || error_and_die "SHA256SUMS signature download failed"
+}
+
+# Verify signature if verification mechanism (keybase, gpg, etc) is present
+if [[ -n "${keybase_bin}" && -x "${keybase_bin}" ]]; then
+  "${keybase_bin}" status | grep -Eq '^Logged in:[[:space:]]*yes'
+  keybase_logged_in="${?}"
+  "${keybase_bin}" list-following | grep -Fq gruntwork
+  keybase_following_gw="${?}"
+
+  if [[ "${keybase_logged_in}" -ne 0 || "${keybase_following_gw}" -ne 0 ]]; then
+    warn_and_continue "Unable to verify OpenPGP signature unless logged into keybase and following gruntwork"
+  else
+    download_signature
+    "${keybase_bin}" pgp verify \
+      -S gruntwork \
+      -d "${download_tmp}/${shasums_name}.sig" \
+      -i "${download_tmp}/${shasums_name}" \
+      || error_and_die "SHA256SUMS signature does not match!"
+  fi
+
+elif [[ -f "${TGENV_ROOT}/use-gnupg" ]]; then
+  # GnuPG uses the user's keyring, and any web-of-trust or local signatures or
+  # anything else they have setup.  This is the crazy-powerful mode which is
+  # overly confusing to newcomers.  We don't support it without the user creating
+  # the file use-gnupg, optionally with directives in it.
+  gnupg_command="$(sed -E -n -e 's/^binary: *//p' <"${TGENV_ROOT}/use-gnupg")"
+  [[ -n "${gnupg_command}" ]] || gnupg_command=gpg
+
+  download_signature
+  # Deliberately unquoted command, in case caller has something fancier in "use-gnupg".
+  # Also, don't use batch mode.  If someone specifies GnuPG, let them deal with any prompting.
+  ${gnupg_command} \
+    --verify "${download_tmp}/${shasums_name}.sig" \
+    "${download_tmp}/${shasums_name}" \
+    || error_and_die "PGP signature rejected by GnuPG"
+
+elif [[ -f "${TGENV_ROOT}/use-gpgv" ]]; then
+  # gpgv is a much simpler interface to verification, but does require that the
+  # key have been downloaded and marked trusted.
+  # We don't force the caller to trust the tgenv repo's copy of their key, they
+  # have to choose to make that trust decision.
+  gpgv_command="$(sed -E -n -e 's/^binary: *//p' <"${TGENV_ROOT}/use-gpgv")"
+  trust_tgenv="$(sed -E -n -e 's/^trust.?tgenv: *//p' <"${TGENV_ROOT}/use-gpgv")"
+  [[ -n "${gpgv_command}" ]] || gpgv_command=gpgv
+
+  download_signature
+  if [[ "${trust_tgenv}" == "yes" ]]; then
+    ${gpgv_command} \
+      --keyring "${TGENV_ROOT}/share/gruntwork-keys.pgp" \
+      "${download_tmp}/${shasums_name}.sig" \
+      "${download_tmp}/${shasums_name}" \
+      || error_and_die "PGP signature rejected"
+  else
+    ${gpgv_command} \
+      "${download_tmp}/${shasums_name}.sig" \
+      "${download_tmp}/${shasums_name}" \
+      || error_and_die "PGP signature rejected"
+  fi
+else
+  # Warning about this avoids an unwarranted sense of confidence in the SHA check
+  warn_and_continue "No keybase install found, skipping OpenPGP signature verification"
+fi
+
+if [[ -n "${shasum_bin}" && -x "${shasum_bin}" ]]; then
+  (
+    cd "${download_tmp}"
+    "${shasum_bin}" \
+      -a 256 \
+      -s \
+      -c <(grep -F "${tarball_name}" "${shasums_name}") || error_and_die "SHA256 hash does not match!"
+  )
+else
+  # Lack of shasum deserves a proper warning
+  warn_and_continue "No shasum tool available. Skipping SHA256 hash validation"
+fi
+
+mkdir -p "${dst_path}" || error_and_die "Failed to make directory ${dst_path}"
+cp "${download_tmp}/${tarball_name}" "${dst_path}/terragrunt" || error_and_die "File copy failed"
+chmod +x "${dst_path}/terragrunt" || error_and_die "Change file mode failed"
 
 info "Installation of terragrunt v${version} successful"
-tgenv-use "$version"
+tgenv-use "${version}"
 trap - EXIT;
