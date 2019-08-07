@@ -41,7 +41,7 @@ else
 fi
 
 [ -n "${version}" ] || error_and_die "Version is not specified"
-version="$(tgenv-list-remote | grep -e "${regex}" | head -n 1)"
+version="$(tgenv-list-remote-all | grep -e "${regex}" | head -n 1)"
 [ -n "${version}" ] || error_and_die "No versions matching '${1}' found in remote"
 
 dst_path="${TGENV_ROOT}/versions/${version}"
