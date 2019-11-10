@@ -8,8 +8,10 @@ source "${TGENV_ROOT}/libexec/helpers"
 [ -d "${TGENV_ROOT}/versions" ] \
   || error_and_die "No versions of terragrunt installed. Please install one with: tgenv install"
 
-TGENV_VERSION_FILE="$(tgenv-version-file)"
-TGENV_VERSION="$(cat "${TGENV_VERSION_FILE}" || true)"
+if test -z "${TGENV_VERSION:-}"; then
+  TGENV_VERSION_FILE="$(tgenv-version-file)"
+  TGENV_VERSION="$(cat "${TGENV_VERSION_FILE}" || true)"
+fi
 
 if [[ "${TGENV_VERSION}" =~ ^latest.*$ ]]; then
   [[ "${TGENV_VERSION}" =~ ^latest\:.*$ ]] && regex="${TGENV_VERSION##*\:}"
