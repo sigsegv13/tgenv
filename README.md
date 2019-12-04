@@ -68,7 +68,7 @@ $ tgenv install
 
 If `shasum` is present in the path, tgenv will verify the download against Gruntwork's published sha256 hash.
 
-> Note: Signature verification does not work as it seems Gruntwork currently does no publish a signature.
+> Note: As of v0.18.1 Gruntwork provides signature verification. If you want to install older version, please set the envvar `TGENV_IGNORE_SHA` with any value. E.g. `export TGENV_IGNORE_SHA=1`
 
 #### .terragrunt-version
 If you use [.terragrunt-version](#terragrunt-version), `tgenv install` (no argument) will install the version written in it.

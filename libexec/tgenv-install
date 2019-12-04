@@ -81,8 +81,12 @@ trap "rm -rf ${download_tmp}" EXIT;
 
 info "Downloading release tarball from ${version_url}/${tarball_name}"
 curlw -L -# -f -o "${download_tmp}/${tarball_name}" "${version_url}/${tarball_name}" || error_and_die "Tarball download failed"
-info "Downloading SHA hash file from ${version_url}/${shasums_name}"
-curlw -L -s -f -o "${download_tmp}/${shasums_name}" "${version_url}/${shasums_name}" || error_and_die "SHA256 hashes download failed"
+if [ -z "${TGENV_IGNORE_SHA}" ]; then
+  info "Downloading SHA hash file from ${version_url}/${shasums_name}"
+  curlw -L -s -f -o "${download_tmp}/${shasums_name}" "${version_url}/${shasums_name}" || error_and_die "SHA256 hashes download failed"
+else
+  warn_and_continue "Flag to ignore SHA checksum is set"
+fi
 
 # Don't think gruntwork has signature file, so the following code is a mockup to simplify maintaining
 # parity with tfenv code base.
